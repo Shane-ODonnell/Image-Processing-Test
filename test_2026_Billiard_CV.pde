@@ -1,50 +1,68 @@
 //recognise different pool balls
 
 PImage allBalls;
-
+int w;
 
 
 void setup() {
-  size(250, 250);
+  size(500, 500);
 
+  w = floor( width / 50);
 
   allBalls = loadImage("poolBalls.jpg");
   showInput();
   colorMode(RGB, 255);
   noStroke();
+  rectMode(CORNER);
 }
 
 boolean first = true;
 int iterator = 0;
 color black = color(0);
 color white = color(255);
+int pw = 1;
+
+int X = 0; int Y = 0;
 
 void draw() {
-  if(iterator < width * height){
-    loadPixels();
-  
-    println("working on pixel: " + iterator + " Out of " + width*height);
+  while( X < width && Y < height){
+    if(X < width){
+      loadPixels();
+      //println("working on pixel: " + iterator + " Out of " + width*height);
+      color curr = white;
+      boolean red = true;
+      int r,g,b;
+      r = 0; g = 0; b = 0;
+      if( Y < height){
+        curr = pixels[ Y * height + X ];
+        r = getRed(X, Y, -1);
+        g = getGrn(X, Y, -1);
+        b = getBlu(X, Y, -1);
+      }
 
-    if( iterator > 0){
-      int percent = floor(iterator / (width * height));
-      println( percent + "% finished");
+      if( r < g + b + 125)
+        red = false;
+      
+      if( red)
+        fill(white);
+      else
+        fill(black);
+      //
+    
+      updatePixels();
+    }
+       
+    rect(X, Y, pw, pw);
+    X = X + pw;
+    
+    if( X >= width){
+      if( Y >= height)
+        X = width;
+      else 
+        X = 0;
+      Y = Y + pw;
     }
 
-    boolean red = true;
-    color curr = pixels[iterator];
-    int r = getRed(0,0,iterator);
-    int g = getGrn(0,0,iterator);
-    int b = getBlu(0,0,iterator);
-
-    if( r < g + b)
-      red = false;
-    if( red)
-      pixels[iterator] = white;
-    else
-      pixels[iterator] = black;
-    iterator++;
-
-    updatePixels();
   }
 }
 
@@ -155,3 +173,19 @@ void RedBinaryFilter(){
   updatePixels();
 }
 
+void isRed(int i, int j){
+
+  int x = i * w;
+  int y = j * w;
+  int next_x = (i + 1) * w;
+  int next_y = (j + 1) * w;
+  int countRed = 0;
+  for(int it = x; it < next_x; it++){
+    for(int jt = y; jt < next_y; jt++){
+      //
+      
+    }  
+  }
+
+
+}
