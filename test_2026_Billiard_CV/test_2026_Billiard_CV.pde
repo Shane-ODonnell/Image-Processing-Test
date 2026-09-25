@@ -9,7 +9,7 @@ void setup() {
 
   w = floor( width / 50);
 
-  allBalls = loadImage("poolBalls.jpg");
+  allBalls = loadImage("color-grid-colors.jpg");
   showInput();
   colorMode(RGB, 255);
   noStroke();
