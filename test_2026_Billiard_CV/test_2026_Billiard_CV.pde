@@ -1,19 +1,15 @@
 //recognise different pool balls
 
 PImage allBalls;
-int w;
-
 
 void setup() {
   size(500, 500);
 
-  w = floor( width / 50);
-
-  allBalls = loadImage("color-grid-colors.jpg");
+  allBalls = loadImage("poolBalls.jpg");
   showInput();
   colorMode(RGB, 255);
   noStroke();
-  rectMode(CORNER);
+  println(floor( millis() / 1000));
 }
 
 boolean first = true;
@@ -21,18 +17,19 @@ int iterator = 0;
 color black = color(0);
 color white = color(255);
 int pw = 1;
-
+color curr = white;
+boolean red = true;
+int r,g,b;
 int X = 0; int Y = 0;
 
 void draw() {
   while( X < width && Y < height){
     if(X < width){
       loadPixels();
-      //println("working on pixel: " + iterator + " Out of " + width*height);
-      color curr = white;
-      boolean red = true;
-      int r,g,b;
+      curr = white;
+      red = true;
       r = 0; g = 0; b = 0;
+
       if( Y < height){
         curr = pixels[ Y * height + X ];
         r = getRed(X, Y, -1);
@@ -49,21 +46,24 @@ void draw() {
         fill(black);
       //
     
-      updatePixels();
+      //updatePixels();
     }
        
     rect(X, Y, pw, pw);
     X = X + pw;
     
     if( X >= width){
-      if( Y >= height)
+      if( Y >= height){
         X = width;
+      }
       else 
         X = 0;
       Y = Y + pw;
     }
 
   }
+  updatePixels();
+  if(first){  println( floor( millis() / 1000)); first = false;}
 }
 
 void showInput() {
@@ -94,44 +94,42 @@ void printColor(int x, int y) {
 
 }
 
+color temp;
 int getRed(int x, int y, int i){
   //the integer 0 - 255 red component value of the pixel at x,y
-  loadPixels();
-  color curr;
+  //loadPixels();
 
   if(i == -1)
-    curr = pixels[ y * height + x ];
+    temp = pixels[ y * height + x ];
   else
-    curr = pixels[i];
+    temp = pixels[i];
   //
-  float redVal = curr >> 16 & 0xFF; // Very fast to calculate 
+  float redVal = temp >> 16 & 0xFF; // Very fast to calculate 
   return floor(redVal);
 }
 
 int getGrn(int x, int y, int i){
   //the integer 0 - 255 green component value of the pixel at x,y
-  loadPixels();
-  color curr;
+  //loadPixels();
 
   if(i == -1)
-    curr = pixels[ y * height + x ];
+    temp = pixels[ y * height + x ];
   else
-    curr = pixels[i];
+    temp = pixels[i];
   //
-  float grnVal = curr >> 8 & 0xFF; // Very fast to calculate 
+  float grnVal = temp >> 8 & 0xFF; // Very fast to calculate 
   return floor(grnVal);
 }
 
 int getBlu(int x, int y, int i){
-  loadPixels();
-  color curr;
+  //loadPixels();
 
   if(i == -1)
-    curr = pixels[ y * height + x ];
+    temp = pixels[ y * height + x ];
   else
-    curr = pixels[i];
+    temp = pixels[i];
   //
-  float bluVal = curr & 0xFF; // Very fast to calculate 
+  float bluVal = temp & 0xFF; // Very fast to calculate 
   return floor(bluVal);
 }
 
@@ -171,21 +169,4 @@ void RedBinaryFilter(){
       pixels[i] = black;
   }
   updatePixels();
-}
-
-void isRed(int i, int j){
-
-  int x = i * w;
-  int y = j * w;
-  int next_x = (i + 1) * w;
-  int next_y = (j + 1) * w;
-  int countRed = 0;
-  for(int it = x; it < next_x; it++){
-    for(int jt = y; jt < next_y; jt++){
-      //
-      
-    }  
-  }
-
-
 }
