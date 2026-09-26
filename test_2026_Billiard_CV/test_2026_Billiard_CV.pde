@@ -18,38 +18,52 @@ color black = color(0);
 color white = color(255);
 int pw = 1;
 color curr = white;
-boolean red = true;
+boolean red = false;
+boolean blue = false;
+boolean green = false;
 int r,g,b;
 int X = 0; int Y = 0;
 
 void draw() {
+  if(first)
+    filter();
+}
+
+void filter(){
   while( X < width && Y < height){
     if(X < width){
       loadPixels();
       curr = white;
-      red = true;
+      red = false;
+      blue = false;
+      green = false;
       r = 0; g = 0; b = 0;
 
       if( Y < height){
         curr = pixels[ Y * height + X ];
-        r = getRed(X, Y, -1);
-        g = getGrn(X, Y, -1);
-        b = getBlu(X, Y, -1);
+        r = floor( curr >> 16 & 0xFF);
+        g = floor( curr >> 8 & 0xFF );
+        b = floor( curr & 0xFF);
       }
 
-      if( r < g + b + 125)
-        red = false;
-      
-      if( red)
-        fill(white);
-      else
-        fill(black);
+      if( r > g + b + 125)
+        red = true;
+      if( b > r + g + 25 && r < 25)
+        blue = true;
+      if( g > r + b + 15)
+        green = true;
+      //
+      fill(black);
+      if( !blue)
+        rect(X, Y, pw, pw);//fill(white);
+      //else
+        //fill(black);
       //
     
       //updatePixels();
     }
        
-    rect(X, Y, pw, pw);
+    //rect(X, Y, pw, pw);
     X = X + pw;
     
     if( X >= width){
@@ -63,7 +77,12 @@ void draw() {
 
   }
   updatePixels();
-  if(first){  println( floor( millis() / 1000)); first = false;}
+
+  if(first){  
+    println( floor( millis() / 1000)); 
+    first = false;
+  }
+
 }
 
 void showInput() {
