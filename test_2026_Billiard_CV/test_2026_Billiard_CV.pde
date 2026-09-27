@@ -53,17 +53,17 @@ void filter(){
       if( g > r + b + 15)
         green = true;
       //
-      fill(black);
-      if( !blue)
-        rect(X, Y, pw, pw);//fill(white);
-      //else
-        //fill(black);
+      //fill(black);
+      if( red)
+        fill(white);//rect(X, Y, pw, pw);
+      else
+        fill(black);
       //
     
       //updatePixels();
     }
        
-    //rect(X, Y, pw, pw);
+    rect(X, Y, pw, pw);
     X = X + pw;
     
     if( X >= width){
@@ -160,8 +160,9 @@ void mousePressed() {
 void keyPressed(){
   if(key == 's')
     showInput();
-  if(key == 'r')
-    RedBinaryFilter();
+  if(key == 'm')
+    medianFiltering();
+  
 }
 
 void RedBinaryFilter(){
@@ -187,5 +188,54 @@ void RedBinaryFilter(){
     else
       pixels[i] = black;
   }
+  updatePixels();
+}
+
+
+void medianFiltering(){
+  loadPixels();
+  int count = 0;
+  color current = black;
+  color[] next = new color[width * height];
+  int increment = 0;
+
+  for(int row = 0; row < height; row++){
+    for(int col = 0; col < width; col++){
+      count = 0;
+      for( int rowi = row - 1; rowi < row + 1; rowi++){
+        if( 0 < rowi && rowi < height){
+          for(int coli = col - 1; coli < col + 1; coli++){
+            if( 0 < coli && coli < width ) {
+              if( !(coli == col && rowi == row) ){
+                current = pixels[ rowi * height + coli ];
+                if( current == white ){
+                  count++;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      //now we know how many of the pixels (out of 8) in the 3x3 area around our current pixel are white
+      //println(row + ", " + col );
+      if( row < height){
+      if(count >= 3)
+        next[ increment ] = white;
+      else 
+        next[ increment ] = black;
+      }
+      increment++;
+    }
+  }
+  increment = 0;
+
+  for(int row = 0; row < width; row++){
+    for(int col = 0; col < height; col++){
+      pixels[increment] = next[increment];
+      increment++;
+    }
+  }
+
   updatePixels();
 }
