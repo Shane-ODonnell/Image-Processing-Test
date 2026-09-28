@@ -155,24 +155,26 @@ int getBlu(int x, int y, int i){
 void mousePressed() {
   //println(mouseX + ", " + mouseY);
   printColor(mouseX, mouseY);
-  // getWhite(mouseY, mouseX);
+  // getWhite(mouseY, mouseX); //debug
 }
 
 void keyPressed(){
   if(key == 's')
     showInput();
   if(key == 'm')
-    medianFiltering();
+    medianFiltering(false, false);
   if(key == 'g'){ 
     X = 0; Y = 0; first = true;
   }
 
   if(key == 'd'){ 
-    dilution();
-  }
-
-
-  
+    //erosion = false, dilution = true
+    medianFiltering(false, true);
+  }  
+  if(key == 'e'){ 
+    //erosion = true, dilution = false
+    medianFiltering(true, false);
+  }  
 }
 
 void RedBinaryFilter(){
@@ -201,32 +203,39 @@ void RedBinaryFilter(){
   updatePixels();
 }
 
-int getWhite(int row, int col){
-  int count = 0;
-  //written to debug
+/*
+  int getWhite(int row, int col){
+    int count = 0;
+    //written to debug
 
-  for( int rowi = row - 1; rowi <= row + 1; rowi++){
-    if( 0 < rowi && rowi < height){
-      for(int coli = col - 1; coli <= col + 1; coli++){
-        if( 0 < coli && coli < width ) {
-          if( !(coli == col && rowi == row) ){
-            println( rowi + ", " + coli);
-            if( pixels[ rowi * height + coli ] == white ){
-              count++;
+    for( int rowi = row - 1; rowi <= row + 1; rowi++){
+      if( 0 < rowi && rowi < height){
+        for(int coli = col - 1; coli <= col + 1; coli++){
+          if( 0 < coli && coli < width ) {
+            if( !(coli == col && rowi == row) ){
+              println( rowi + ", " + coli);
+              if( pixels[ rowi * height + coli ] == white ){
+                count++;
+              }
             }
           }
         }
       }
     }
+    println( count );
+    return count;
   }
-  println( count );
-  return count;
-}
+*/
 
-
-void medianFiltering(){
+void medianFiltering(boolean erosion, boolean dilution){
   loadPixels();
-  boolean erosion = false;
+
+  if(dilution)
+    println( "applying dilution" );
+  else if(erosion)
+    println( "applying erosion" );
+  else 
+    println( "median filtering" );
   int count = 0;
   color current = black;
   color[] next = new color[width * height];
@@ -235,70 +244,35 @@ void medianFiltering(){
   for(int row = 0; row < height; row++){
     for(int col = 0; col < width; col++){
       count = 0;
-      for( int rowi = row - 1; rowi <= row + 1; rowi++){
-        if( 0 < rowi && rowi < height){
-          for(int coli = col - 1; coli <= col + 1; coli++){
-            if( 0 < coli && coli < width ) {
-              if( !(coli == col && rowi == row) ){
-                current = pixels[ rowi * height + coli ];
-                if( current == white ){
-                  count++;
-                }
-              }
-            }
-          }
-        }
-      }
-
-      //now we know how many of the pixels (out of 8) in the 3x3 area around our current pixel are white
-      //println(row + ", " + col );
-      if(count == 8 && erosion)
-        next[ increment ] = white;
-      if(count >= 5 && !erosion)
-        next[ increment ] = white;
-      else 
-        next[ increment ] = black;
-      
-      increment++;
-    }
-  }
-  increment = 0;
-
-  for(int row = 0; row < width; row++){
-    for(int col = 0; col < height; col++){
-      pixels[increment] = next[increment];
-      increment++;
-    }
-  }
-
-  updatePixels();
-}
-
-
-void dilution(){
-  println( "applying dilution" );
-  loadPixels();
-  color current = black;
-  color[] next = new color[width * height];
-  int increment = 0;
-
-  for(int row = 0; row < height; row++){
-    for(int col = 0; col < width; col++){
-      current = pixels[ row * height + col ];
-      if( current == white ){
+      if(dilution && pixels[ row * height + col ] == white || !dilution){
         for( int rowi = row - 1; rowi <= row + 1; rowi++){
           if( 0 < rowi && rowi < height){
             for(int coli = col - 1; coli <= col + 1; coli++){
               if( 0 < coli && coli < width ) {
                 if( !(coli == col && rowi == row) ){
-                  next[ rowi * height + coli] = white;
+                  current = pixels[ rowi * height + coli ];
+                  if( current == white && !dilution){
+                    count++;
+                  }           
+                  else if(dilution){
+                    next[ rowi * height + coli] = white;
+                  } 
                 }
               }
             }
           }
         }
+
+        if(!dilution){
+          //now we know how many of the pixels (out of 8) in the 3x3 area around our current pixel are white
+          if((count >= 5 && !erosion) || (count >= 8 && erosion))
+            next[ increment ] = white;
+          else 
+            next[ increment ] = black;
+        }
+
+        increment++;
       }
-      increment++;
     }
   }
   increment = 0;
@@ -312,3 +286,44 @@ void dilution(){
 
   updatePixels();
 }
+
+/*
+  void dilution(){
+    println( "applying dilution" );
+    loadPixels();
+    color current = black;
+    color[] next = new color[width * height];
+    int increment = 0;
+
+    for(int row = 0; row < height; row++){
+      for(int col = 0; col < width; col++){
+        current = pixels[ row * height + col ];
+        if( current == white ){
+          for( int rowi = row - 1; rowi <= row + 1; rowi++){
+            if( 0 < rowi && rowi < height){
+              for(int coli = col - 1; coli <= col + 1; coli++){
+                if( 0 < coli && coli < width ) {
+                  if( !(coli == col && rowi == row) ){
+                    if(dilution)
+                      next[ rowi * height + coli] = white;
+                  }
+                }
+              }
+            }
+          }
+        }
+        increment++;
+      }
+    }
+    increment = 0;
+
+    for(int row = 0; row < width; row++){
+      for(int col = 0; col < height; col++){
+        pixels[increment] = next[increment];
+        increment++;
+      }
+    }
+
+    updatePixels();
+  }
+*/
