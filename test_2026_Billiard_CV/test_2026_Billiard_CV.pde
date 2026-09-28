@@ -5,7 +5,7 @@ PImage allBalls;
 void setup() {
   size(500, 500);
 
-  allBalls = loadImage("poolBalls.jpg");
+  allBalls = loadImage("poolBalls.jpg");//DudOffer
   showInput();
   colorMode(RGB, 255);
   noStroke();
@@ -155,6 +155,7 @@ int getBlu(int x, int y, int i){
 void mousePressed() {
   //println(mouseX + ", " + mouseY);
   printColor(mouseX, mouseY);
+  // getWhite(mouseY, mouseX);
 }
 
 void keyPressed(){
@@ -162,6 +163,15 @@ void keyPressed(){
     showInput();
   if(key == 'm')
     medianFiltering();
+  if(key == 'g'){ 
+    X = 0; Y = 0; first = true;
+  }
+
+  if(key == 'd'){ 
+    dilution();
+  }
+
+
   
 }
 
@@ -191,9 +201,32 @@ void RedBinaryFilter(){
   updatePixels();
 }
 
+int getWhite(int row, int col){
+  int count = 0;
+  //written to debug
+
+  for( int rowi = row - 1; rowi <= row + 1; rowi++){
+    if( 0 < rowi && rowi < height){
+      for(int coli = col - 1; coli <= col + 1; coli++){
+        if( 0 < coli && coli < width ) {
+          if( !(coli == col && rowi == row) ){
+            println( rowi + ", " + coli);
+            if( pixels[ rowi * height + coli ] == white ){
+              count++;
+            }
+          }
+        }
+      }
+    }
+  }
+  println( count );
+  return count;
+}
+
 
 void medianFiltering(){
   loadPixels();
+  boolean erosion = false;
   int count = 0;
   color current = black;
   color[] next = new color[width * height];
@@ -202,9 +235,9 @@ void medianFiltering(){
   for(int row = 0; row < height; row++){
     for(int col = 0; col < width; col++){
       count = 0;
-      for( int rowi = row - 1; rowi < row + 1; rowi++){
+      for( int rowi = row - 1; rowi <= row + 1; rowi++){
         if( 0 < rowi && rowi < height){
-          for(int coli = col - 1; coli < col + 1; coli++){
+          for(int coli = col - 1; coli <= col + 1; coli++){
             if( 0 < coli && coli < width ) {
               if( !(coli == col && rowi == row) ){
                 current = pixels[ rowi * height + coli ];
@@ -219,11 +252,51 @@ void medianFiltering(){
 
       //now we know how many of the pixels (out of 8) in the 3x3 area around our current pixel are white
       //println(row + ", " + col );
-      if( row < height){
-      if(count >= 3)
+      if(count == 8 && erosion)
+        next[ increment ] = white;
+      if(count >= 5 && !erosion)
         next[ increment ] = white;
       else 
         next[ increment ] = black;
+      
+      increment++;
+    }
+  }
+  increment = 0;
+
+  for(int row = 0; row < width; row++){
+    for(int col = 0; col < height; col++){
+      pixels[increment] = next[increment];
+      increment++;
+    }
+  }
+
+  updatePixels();
+}
+
+
+void dilution(){
+  println( "applying dilution" );
+  loadPixels();
+  color current = black;
+  color[] next = new color[width * height];
+  int increment = 0;
+
+  for(int row = 0; row < height; row++){
+    for(int col = 0; col < width; col++){
+      current = pixels[ row * height + col ];
+      if( current == white ){
+        for( int rowi = row - 1; rowi <= row + 1; rowi++){
+          if( 0 < rowi && rowi < height){
+            for(int coli = col - 1; coli <= col + 1; coli++){
+              if( 0 < coli && coli < width ) {
+                if( !(coli == col && rowi == row) ){
+                  next[ rowi * height + coli] = white;
+                }
+              }
+            }
+          }
+        }
       }
       increment++;
     }
