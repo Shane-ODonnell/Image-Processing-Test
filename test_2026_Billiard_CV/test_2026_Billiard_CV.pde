@@ -1,6 +1,7 @@
 //recognise different pool balls
 
 PImage allBalls;
+PImage bwImg; 
 
 void setup() {
   size(500, 500);
@@ -13,6 +14,8 @@ void setup() {
 }
 
 boolean first = true;
+boolean filtered = false;
+color[] filteredImage = new color[width * height];
 int iterator = 0;
 color black = color(0);
 color white = color(255);
@@ -76,13 +79,21 @@ void filter(){
     }
 
   }
+
   updatePixels();
+
+  bwImg = createImage(width, height, RGB);
+  bwImg.loadPixels();
+  for (int i = 0; i < bwImg.pixels.length; i++) {
+    bwImg.pixels[i] = pixels[i]; 
+  }
+  bwImg.updatePixels();
 
   if(first){  
     println( floor( millis() / 1000)); 
     first = false;
   }
-
+  filtered = true;
 }
 
 void showInput() {
@@ -159,12 +170,20 @@ void mousePressed() {
 }
 
 void keyPressed(){
-  if(key == 's')
+  if(key == 's'){
     showInput();
+    filtered = false;
+  }
   if(key == 'm')
     medianFiltering(false, false);
   if(key == 'g'){ 
-    X = 0; Y = 0; first = true;
+    if (bwImg != null){
+      image(bwImg, 0, 0, width, height);
+      black = color(0);
+      white = color(255);
+      filtered = true;
+    }
+    //X = 0; Y = 0; first = true;
   }
 
   if(key == 'd'){ 
@@ -175,61 +194,15 @@ void keyPressed(){
     //erosion = true, dilution = false
     medianFiltering(true, false);
   }  
+  if(key == 'i')
+    invert();
 }
-
-void RedBinaryFilter(){
-  loadPixels();
-  color black = color(0);
-  color white = color(255);
-  for(int i = 0; i < width * height; i++){
-    println("working on pixel: " + i + " Out of " + width*height);
-    if( i > 0){
-      int percent = floor(i / (width * height));
-      println( percent + "% finished");
-    }
-    boolean red = true;
-    color curr = pixels[i];
-    int r = getRed(0,0,i);
-    int g = getGrn(0,0,i);
-    int b = getBlu(0,0,i);
-
-    if( r < g + b)
-      red = false;
-    if( red)
-      pixels[i] = white;
-    else
-      pixels[i] = black;
-  }
-  updatePixels();
-}
-
-/*
-  int getWhite(int row, int col){
-    int count = 0;
-    //written to debug
-
-    for( int rowi = row - 1; rowi <= row + 1; rowi++){
-      if( 0 < rowi && rowi < height){
-        for(int coli = col - 1; coli <= col + 1; coli++){
-          if( 0 < coli && coli < width ) {
-            if( !(coli == col && rowi == row) ){
-              println( rowi + ", " + coli);
-              if( pixels[ rowi * height + coli ] == white ){
-                count++;
-              }
-            }
-          }
-        }
-      }
-    }
-    println( count );
-    return count;
-  }
-*/
 
 void medianFiltering(boolean erosion, boolean dilution){
   loadPixels();
 
+  int radius = 1; // radius 1 encompasses a 9x9 area
+  int area = 4 * radius * (radius + 1);
   if(dilution)
     println( "applying dilution" );
   else if(erosion)
@@ -245,9 +218,9 @@ void medianFiltering(boolean erosion, boolean dilution){
     for(int col = 0; col < width; col++){
       count = 0;
       if(dilution && pixels[ row * height + col ] == white || !dilution){
-        for( int rowi = row - 1; rowi <= row + 1; rowi++){
+        for( int rowi = row - radius; rowi <= row + radius; rowi++){
           if( 0 < rowi && rowi < height){
-            for(int coli = col - 1; coli <= col + 1; coli++){
+            for(int coli = col - radius; coli <= col + radius; coli++){
               if( 0 < coli && coli < width ) {
                 if( !(coli == col && rowi == row) ){
                   current = pixels[ rowi * height + coli ];
@@ -265,7 +238,7 @@ void medianFiltering(boolean erosion, boolean dilution){
 
         if(!dilution){
           //now we know how many of the pixels (out of 8) in the 3x3 area around our current pixel are white
-          if((count >= 5 && !erosion) || (count >= 8 && erosion))
+          if((count >= 5 && !erosion) || (count >= area && erosion))
             next[ increment ] = white;
           else 
             next[ increment ] = black;
@@ -285,6 +258,26 @@ void medianFiltering(boolean erosion, boolean dilution){
   }
 
   updatePixels();
+}
+
+void invert(){
+  if( filtered ){
+    loadPixels();
+
+    for(int i = 0; i < width * height; i++){
+      if(pixels[i] == white){
+        pixels[i] = black;
+      }
+      else { //if(pixels[i] == black) {
+        pixels[i] = white;
+      }
+    
+    }
+    color swap = white;
+    white = black;
+    black = swap;
+    updatePixels();
+  }
 }
 
 /*
